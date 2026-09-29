@@ -1,6 +1,6 @@
 # Validation and Errors
 
-`i-hate-forms` does not define a validation system. It passes `formOptions` and
+`forms` does not define a validation system. It passes `formOptions` and
 controller `rules` to React Hook Form, so any compatible resolver or built-in
 rule can be used.
 

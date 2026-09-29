@@ -1,6 +1,6 @@
 # Documentation
 
-This directory contains the complete documentation for `i-hate-forms`. The
+This directory contains the complete documentation for `forms`. The
 guides are stored with the source repository so API changes and documentation
 can be reviewed together.
 
@@ -45,7 +45,7 @@ All documentation examples use the consumer import path.
 
 ## Useful Links
 
-- [Repository](https://github.com/linuskang/i-hate-forms)
+- [Repository](https://github.com/linuskang/forms)
 - [Registry definition](../registry.json)
 - [Registry source](../registry/form/index.tsx)
 - [React Hook Form documentation](https://react-hook-form.com/)

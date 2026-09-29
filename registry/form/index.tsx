@@ -13,6 +13,7 @@ import {
     type SubmitErrorHandler,
     type SubmitHandler,
     type UseControllerProps,
+    type UseControllerReturn,
     type UseFormProps,
     type UseFormReturn,
 } from "react-hook-form"
@@ -35,10 +36,23 @@ function useHeadlessForm() {
     return context
 }
 
+function useStrictFormContext<
+    TFieldValues extends FieldValues = FieldValues,
+>() {
+    const form = useFormContext<TFieldValues>()
+
+    if (!form) {
+        throw new Error("Form components must be used inside <Form>.")
+    }
+
+    return form
+}
+
 type FormProps<TFieldValues extends FieldValues = FieldValues> = Omit<
     React.ComponentProps<"form">,
     "onInvalid" | "onSubmit"
 > & {
+    form?: UseFormReturn<TFieldValues>
     formOptions?: UseFormProps<TFieldValues>
     onInvalid?: SubmitErrorHandler<TFieldValues>
     onSubmit: SubmitHandler<TFieldValues>
@@ -46,18 +60,23 @@ type FormProps<TFieldValues extends FieldValues = FieldValues> = Omit<
 
 function FormRoot<TFieldValues extends FieldValues = FieldValues>({
     children,
+    form: providedForm,
     formOptions,
     onInvalid,
     onSubmit,
     ...props
 }: FormProps<TFieldValues>) {
-    const form = useForm<TFieldValues>(formOptions)
+    const internalForm = useForm<TFieldValues>(formOptions)
+    const form = providedForm ?? internalForm
     const id = React.useId()
-    const context = {
-        id,
-        descriptionId: `${id}-description`,
-        titleId: `${id}-title`,
-    }
+    const context = React.useMemo<FormContextValue>(
+        () => ({
+            id,
+            descriptionId: `${id}-description`,
+            titleId: `${id}-title`,
+        }),
+        [id]
+    )
 
     return (
         <FormContext value={context}>
@@ -89,7 +108,7 @@ function FormDescription(props: React.ComponentProps<"p">) {
 }
 
 function getFieldId(formId: string, name: string) {
-    return `${formId}-field-${name}`
+    return `${formId}-field-${name.replace(/[^\w-]/g, "-")}`
 }
 
 function getFieldErrorId(formId: string, name: string) {
@@ -115,7 +134,10 @@ function FormLabel<
 type FormFieldRenderProps<
     TFieldValues extends FieldValues,
     TName extends FieldPath<TFieldValues>,
-> = ReturnType<typeof useController<TFieldValues, TName>>
+> = UseControllerReturn<TFieldValues, TName> & {
+    errorId: string
+    fieldId: string
+}
 
 type FormFieldOverride<
     TFieldValues extends FieldValues,
@@ -194,9 +216,11 @@ function FormField<
         ...props,
         rules,
     })
+    const fieldId = getFieldId(id, props.name)
+    const errorId = getFieldErrorId(id, props.name)
 
     if (typeof children === "function") {
-        return children(controller)
+        return children({ ...controller, errorId, fieldId })
     }
 
     const child = children as React.ReactElement<NativeControlProps>
@@ -204,7 +228,7 @@ function FormField<
     const { field, fieldState } = controller
     const checkbox = childProps.type === "checkbox"
     const radio = childProps.type === "radio"
-    const errorId = getFieldErrorId(id, props.name)
+    const file = childProps.type === "file"
     const describedBy = [
         childProps["aria-describedby"],
         fieldState.invalid ? errorId : undefined,
@@ -215,23 +239,23 @@ function FormField<
     if (override) {
         return React.cloneElement(child, {
             "aria-describedby": describedBy,
-            "aria-invalid": fieldState.invalid,
+            "aria-invalid": fieldState.invalid || undefined,
             disabled: field.disabled,
-            id: childProps.id ?? getFieldId(id, props.name),
+            id: childProps.id ?? fieldId,
             name: field.name,
             ref: mergeRefs(childProps.ref, field.ref),
             ...(isRequired
                 ? { "aria-required": true, required: true }
                 : undefined),
-            ...override(controller),
+            ...override({ ...controller, errorId, fieldId }),
         } as NativeControlProps)
     }
 
     const controlProps: NativeControlProps = {
         "aria-describedby": describedBy,
-        "aria-invalid": fieldState.invalid,
+        "aria-invalid": fieldState.invalid || undefined,
         disabled: field.disabled,
-        id: childProps.id ?? getFieldId(id, props.name),
+        id: childProps.id ?? fieldId,
         name: field.name,
         onBlur: (event) => {
             childProps.onBlur?.(event)
@@ -253,7 +277,7 @@ function FormField<
         controlProps.checked = Boolean(field.value)
     } else if (radio) {
         controlProps.checked = field.value === childProps.value
-    } else {
+    } else if (!file) {
         controlProps.value = field.value ?? ""
     }
 
@@ -278,7 +302,7 @@ function FormError<
     ...props
 }: FormErrorProps<TFieldValues, TName>) {
     const { id } = useHeadlessForm()
-    const form = useFormContext<TFieldValues>()
+    const form = useStrictFormContext<TFieldValues>()
     const formState = useFormState<TFieldValues>({
         control: form.control,
         name,
@@ -299,23 +323,23 @@ function FormError<
     }
 
     return (
-        <p id={providedId ?? getFieldErrorId(id, name)} {...props}>
+        <p id={providedId ?? getFieldErrorId(id, name)} role="alert" {...props}>
             {content}
         </p>
     )
 }
 
-type FormSubmitRenderProps = {
-    form: UseFormReturn<FieldValues>
+type FormSubmitRenderProps<TFieldValues extends FieldValues = FieldValues> = {
+    form: UseFormReturn<TFieldValues>
     isLoading: boolean
     isSubmitting: boolean
 }
 
-type FormSubmitProps = {
+type FormSubmitProps<TFieldValues extends FieldValues = FieldValues> = {
     children:
         | React.ReactElement
         | React.ReactNode
-        | ((props: FormSubmitRenderProps) => React.ReactNode)
+        | ((props: FormSubmitRenderProps<TFieldValues>) => React.ReactNode)
     disableWhileSubmitting?: boolean
     loading?: boolean
 }
@@ -326,12 +350,12 @@ type SubmitControlProps = {
     type?: string
 }
 
-function FormSubmit({
+function FormSubmit<TFieldValues extends FieldValues = FieldValues>({
     children,
     disableWhileSubmitting = true,
     loading = false,
-}: FormSubmitProps) {
-    const form = useFormContext()
+}: FormSubmitProps<TFieldValues>) {
+    const form = useStrictFormContext<TFieldValues>()
     const isSubmitting = form.formState.isSubmitting
     const isLoading = loading || isSubmitting
     const disabled = loading || (disableWhileSubmitting && isSubmitting)
@@ -359,17 +383,17 @@ function FormSubmit({
     })
 }
 
-type FormResetRenderProps = {
-    form: UseFormReturn<FieldValues>
+type FormResetRenderProps<TFieldValues extends FieldValues = FieldValues> = {
+    form: UseFormReturn<TFieldValues>
     isDirty: boolean
     isSubmitting: boolean
 }
 
-type FormResetProps = {
+type FormResetProps<TFieldValues extends FieldValues = FieldValues> = {
     children:
         | React.ReactElement
         | React.ReactNode
-        | ((props: FormResetRenderProps) => React.ReactNode)
+        | ((props: FormResetRenderProps<TFieldValues>) => React.ReactNode)
 }
 
 type ResetControlProps = {
@@ -377,8 +401,10 @@ type ResetControlProps = {
     type?: string
 }
 
-function FormReset({ children }: FormResetProps) {
-    const form = useFormContext()
+function FormReset<TFieldValues extends FieldValues = FieldValues>({
+    children,
+}: FormResetProps<TFieldValues>) {
+    const form = useStrictFormContext<TFieldValues>()
     const { isDirty, isSubmitting } = form.formState
 
     if (typeof children === "function") {
@@ -415,7 +441,7 @@ const Form = Object.assign(FormRoot, {
     Title: FormTitle,
 })
 
-export { Form }
+export { Form, useHeadlessForm }
 export type {
     FormErrorProps,
     FormFieldOverride,

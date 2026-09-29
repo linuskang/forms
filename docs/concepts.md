@@ -1,6 +1,6 @@
 # Core Concepts
 
-`i-hate-forms` is a thin component API over React Hook Form. Understanding which
+`forms` is a thin component API over React Hook Form. Understanding which
 layer owns each responsibility makes the library easier to extend.
 
 ## Responsibility Boundaries
@@ -12,7 +12,7 @@ React Hook Form owns:
 - Field registration through `useController`.
 - The form context exposed through `FormProvider`.
 
-`i-hate-forms` owns:
+`forms` owns:
 
 - Creating the React Hook Form instance.
 - Connecting compound components to the form context.

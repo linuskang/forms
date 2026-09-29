@@ -1,6 +1,6 @@
 # Installation
 
-`i-hate-forms` is distributed as a shadcn GitHub registry item. The public
+`forms` is distributed as a shadcn GitHub registry item. The public
 GitHub repository is the registry server: the CLI reads `registry.json` and the
 referenced source files directly from GitHub.
 
@@ -23,19 +23,19 @@ Choose the command for your package manager:
 
 ```bash
 # npm
-npx shadcn@latest add linuskang/i-hate-forms/form
+npx shadcn@latest add linuskang/forms/form
 
 # pnpm
-pnpm dlx shadcn@latest add linuskang/i-hate-forms/form
+pnpm dlx shadcn@latest add linuskang/forms/form
 
 # bun
-bunx shadcn@latest add linuskang/i-hate-forms/form
+bunx shadcn@latest add linuskang/forms/form
 ```
 
 The GitHub address has three parts:
 
 ```text
-linuskang / i-hate-forms / form
+linuskang / forms / form
 owner       repository     registry item
 ```
 
@@ -83,13 +83,13 @@ Registry items install source code and dependencies into your application.
 Review the resolved item before installation:
 
 ```bash
-npx shadcn@latest view linuskang/i-hate-forms/form
+npx shadcn@latest view linuskang/forms/form
 ```
 
 Preview the changes without writing files:
 
 ```bash
-npx shadcn@latest add linuskang/i-hate-forms/form --dry-run
+npx shadcn@latest add linuskang/forms/form --dry-run
 ```
 
 The source can also be reviewed directly in
@@ -100,7 +100,7 @@ The source can also be reviewed directly in
 Run the add command again to compare the registry version with your local copy:
 
 ```bash
-npx shadcn@latest add linuskang/i-hate-forms/form --diff
+npx shadcn@latest add linuskang/forms/form --diff
 ```
 
 Use the CLI's diff or view output before replacing local changes. A major
@@ -113,7 +113,7 @@ Without a ref, the CLI resolves the repository's default branch. For a
 reproducible installation, append a release tag or full commit SHA:
 
 ```bash
-npx shadcn@latest add linuskang/i-hate-forms/form#<tag-or-full-commit-sha>
+npx shadcn@latest add linuskang/forms/form#<tag-or-full-commit-sha>
 ```
 
 Refs are especially useful in production projects that want to review upgrades

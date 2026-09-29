@@ -15,7 +15,7 @@ it might just be me but i hate creating these forms.
 all you need to do is add the components to your project:
 
 ```bash
-npx shadcn@latest add linuskang/i-hate-forms/form
+npx shadcn@latest add linuskang/forms/form
 ```
 
 thats it, now, just create a form:
@@ -46,7 +46,7 @@ thats it, now, just create a form:
 
 20 lines, with all of your form logic. just bring your own components.
 
-still unsure? check out the [example form](https://i-hate-forms.linuskang.au)
+still unsure? check out the [example form](https://forms.linuskang.au)
 
 ## license
 

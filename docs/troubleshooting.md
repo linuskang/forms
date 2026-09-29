@@ -152,7 +152,7 @@ Inspect that value to find the actual target.
 Preview the update first:
 
 ```bash
-npx shadcn@latest add linuskang/i-hate-forms/form --diff
+npx shadcn@latest add linuskang/forms/form --diff
 ```
 
 Installed shadcn components are source-owned. Merge upstream changes manually
@@ -163,7 +163,7 @@ when your local implementation has diverged.
 Check the public item without modifying your project:
 
 ```bash
-npx shadcn@latest view linuskang/i-hate-forms/form
+npx shadcn@latest view linuskang/forms/form
 ```
 
 Then confirm:
